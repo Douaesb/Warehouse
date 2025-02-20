@@ -1,6 +1,7 @@
 package com.progresssoft.warehouse.controller;
 
 import com.progresssoft.warehouse.dto.FXDealDTO;
+import com.progresssoft.warehouse.dto.FXDealResponseDTO;
 import com.progresssoft.warehouse.service.FXDealService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,8 @@ public class FXDealController {
     }
 
     @PostMapping
-    public ResponseEntity<FXDealDTO> saveDeal(@Valid @RequestBody FXDealDTO fxDealDTO) {
-        FXDealDTO savedDeal = fxDealService.saveFXDeal(fxDealDTO);
+    public ResponseEntity<FXDealResponseDTO> saveDeal(@Valid @RequestBody FXDealDTO fxDealDTO) {
+        FXDealResponseDTO savedDeal = fxDealService.saveFXDeal(fxDealDTO);
         return ResponseEntity.ok(savedDeal);
     }
 }

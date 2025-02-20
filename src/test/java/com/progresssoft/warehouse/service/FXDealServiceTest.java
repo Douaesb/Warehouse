@@ -1,6 +1,7 @@
 package com.progresssoft.warehouse.service;
 
 import com.progresssoft.warehouse.dto.FXDealDTO;
+import com.progresssoft.warehouse.dto.FXDealResponseDTO;
 import com.progresssoft.warehouse.entity.FXDeal;
 import com.progresssoft.warehouse.exception.DuplicateDealException;
 import com.progresssoft.warehouse.exception.InvalidDealException;
@@ -65,27 +66,43 @@ class FXDealServiceTest {
         when(fxDealRepository.save(any(FXDeal.class))).thenReturn(fxDealEntity);
         when(fxDealMapper.toDTO(any(FXDeal.class))).thenReturn(validDealDTO);
 
-        FXDealDTO savedDeal = fxDealService.saveFXDeal(validDealDTO);
+        FXDealResponseDTO response = fxDealService.saveFXDeal(validDealDTO);
 
-        assertNotNull(savedDeal, "Expected savedDeal to be non-null but was null.");
-        assertEquals(validDealDTO.getDealUniqueId(), savedDeal.getDealUniqueId());
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        assertEquals("FX Deal saved successfully.", response.getMessage());
+        assertNotNull(response.getFxDeal());
+        assertEquals(validDealDTO.getDealUniqueId(), response.getFxDeal().getDealUniqueId());
+
+        verify(fxDealRepository, times(1)).findByDealUniqueId(validDealDTO.getDealUniqueId());
         verify(fxDealRepository, times(1)).save(any(FXDeal.class));
+        verify(fxDealMapper, times(1)).toEntity(validDealDTO);
+        verify(fxDealMapper, times(1)).toDTO(any(FXDeal.class));
     }
 
     @Test
     void saveFXDeal_ShouldThrowDuplicateDealException_WhenDealAlreadyExists() {
         when(fxDealRepository.findByDealUniqueId(validDealDTO.getDealUniqueId())).thenReturn(Optional.of(fxDealEntity));
 
-        assertThrows(DuplicateDealException.class, () -> fxDealService.saveFXDeal(validDealDTO));
+        DuplicateDealException exception = assertThrows(DuplicateDealException.class, () -> {
+            fxDealService.saveFXDeal(validDealDTO);
+        });
 
+        assertEquals("Duplicate Deal: A deal with ID " + validDealDTO.getDealUniqueId() + " already exists.", exception.getMessage());
+
+        verify(fxDealRepository, times(1)).findByDealUniqueId(validDealDTO.getDealUniqueId());
         verify(fxDealRepository, never()).save(any(FXDeal.class));
     }
 
     @Test
     void saveFXDeal_ShouldThrowInvalidDealException_WhenCurrenciesAreTheSame() {
-        validDealDTO.setToCurrency("USD");
+        validDealDTO.setToCurrency(validDealDTO.getFromCurrency());
 
-        assertThrows(InvalidDealException.class, () -> fxDealService.saveFXDeal(validDealDTO));
+        InvalidDealException exception = assertThrows(InvalidDealException.class, () -> {
+            fxDealService.saveFXDeal(validDealDTO);
+        });
+
+        assertEquals("From and To currencies must be different.", exception.getMessage());
 
         verify(fxDealRepository, never()).save(any(FXDeal.class));
     }

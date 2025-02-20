@@ -1,8 +1,9 @@
 package com.progresssoft.warehouse.service;
 
 import com.progresssoft.warehouse.dto.FXDealDTO;
+import com.progresssoft.warehouse.dto.FXDealResponseDTO;
 
 public interface FXDealService {
-    FXDealDTO saveFXDeal(FXDealDTO fxDealDTO);
+    FXDealResponseDTO saveFXDeal(FXDealDTO fxDealDTO);
 
 }
