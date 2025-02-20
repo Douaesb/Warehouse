@@ -27,9 +27,11 @@ public class FXDealDTO {
     private String toCurrency;
 
     @NotNull(message = "Deal Timestamp is required")
+    @PastOrPresent(message = "Deal Timestamp must not be in the future")
     private LocalDateTime dealTimestamp;
 
     @NotNull(message = "Deal Amount is required")
     @Positive(message = "Deal Amount must be positive")
+    @Digits(integer = 15, fraction = 2, message = "Deal Amount must be a valid monetary value with up to 2 decimal places")
     private BigDecimal dealAmount;
 }
