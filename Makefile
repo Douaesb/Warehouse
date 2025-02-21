@@ -1,7 +1,7 @@
 APP_NAME=warehouse-app
 DB_NAME=warehouse-db
 DOCKER_COMPOSE=docker-compose
-JAR_FILE=target/Warehouse-0.0.1-SNAPSHOT.jar
+JAR_FILE=target/warehouse-0.0.1-SNAPSHOT.jar
 
 build:
 	docker build -t $(APP_NAME) .
@@ -28,8 +28,6 @@ package:
 test:
 	mvn test
 
-ps:
-	$(DOCKER_COMPOSE) ps
 
 help:
 	@echo "Makefile Commands:"
@@ -41,4 +39,3 @@ help:
 	@echo "  clean       - Remove build artifacts"
 	@echo "  package     - Build the JAR file with Maven"
 	@echo "  test         - Run the tests with Maven"
-	@echo "  ps          - Show running containers"

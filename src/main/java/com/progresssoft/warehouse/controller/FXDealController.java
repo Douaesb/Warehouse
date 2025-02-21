@@ -21,7 +21,7 @@ public class FXDealController {
     }
 
     @PostMapping
-    public ResponseEntity<FXDealResponseDTO> saveDeal(@Valid @RequestBody FXDealDTO fxDealDTO) {
+    public ResponseEntity<FXDealResponseDTO> saveDeal(@RequestBody @Valid FXDealDTO fxDealDTO) {
         FXDealResponseDTO savedDeal = fxDealService.saveFXDeal(fxDealDTO);
         return ResponseEntity.ok(savedDeal);
     }

@@ -13,17 +13,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
 class FXDealServiceTest {
 
     @Mock
@@ -68,13 +70,13 @@ class FXDealServiceTest {
 
         FXDealResponseDTO response = fxDealService.saveFXDeal(validDealDTO);
 
-        assertNotNull(response);
-        assertTrue(response.isSuccess());
-        assertEquals("FX Deal saved successfully.", response.getMessage());
-        assertNotNull(response.getFxDeal());
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        assertThat("FX Deal saved successfully.").isEqualTo(response.getMessage());
+        assertThat(response.getFxDeal()).isNotNull();
         assertEquals(validDealDTO.getDealUniqueId(), response.getFxDeal().getDealUniqueId());
 
-        verify(fxDealRepository, times(1)).findByDealUniqueId(validDealDTO.getDealUniqueId());
+        verify(fxDealRepository, times(1)).existsById(validDealDTO.getDealUniqueId());
         verify(fxDealRepository, times(1)).save(any(FXDeal.class));
         verify(fxDealMapper, times(1)).toEntity(validDealDTO);
         verify(fxDealMapper, times(1)).toDTO(any(FXDeal.class));
@@ -82,27 +84,30 @@ class FXDealServiceTest {
 
     @Test
     void saveFXDeal_ShouldThrowDuplicateDealException_WhenDealAlreadyExists() {
-        when(fxDealRepository.findByDealUniqueId(validDealDTO.getDealUniqueId())).thenReturn(Optional.of(fxDealEntity));
+        when(fxDealRepository.existsById(validDealDTO.getDealUniqueId())).thenReturn(true);
 
-        DuplicateDealException exception = assertThrows(DuplicateDealException.class, () -> {
-            fxDealService.saveFXDeal(validDealDTO);
-        });
+        assertThatExceptionOfType(DuplicateDealException.class)
+                .isThrownBy(() -> fxDealService.saveFXDeal(validDealDTO))
+                .withMessage("Duplicate Deal: A deal with ID " + validDealDTO.getDealUniqueId() + " already exists.");
 
-        assertEquals("Duplicate Deal: A deal with ID " + validDealDTO.getDealUniqueId() + " already exists.", exception.getMessage());
-
-        verify(fxDealRepository, times(1)).findByDealUniqueId(validDealDTO.getDealUniqueId());
+        verify(fxDealRepository, times(1)).existsById(validDealDTO.getDealUniqueId());
         verify(fxDealRepository, never()).save(any(FXDeal.class));
     }
 
     @Test
     void saveFXDeal_ShouldThrowInvalidDealException_WhenCurrenciesAreTheSame() {
-        validDealDTO.setToCurrency(validDealDTO.getFromCurrency());
+        String currency = "USD";
+        FXDealDTO invalidFXDeal = FXDealDTO.builder()
+                .dealUniqueId(UUID.randomUUID())
+                .fromCurrency(currency)
+                .toCurrency(currency)
+                .dealTimestamp(LocalDateTime.now())
+                .dealAmount(new BigDecimal("1000.20"))
+                .build();
 
-        InvalidDealException exception = assertThrows(InvalidDealException.class, () -> {
-            fxDealService.saveFXDeal(validDealDTO);
-        });
-
-        assertEquals("From and To currencies must be different.", exception.getMessage());
+        assertThatExceptionOfType(InvalidDealException.class)
+                .isThrownBy(() -> fxDealService.saveFXDeal(invalidFXDeal))
+                .withMessage("From and To currencies must be different.");
 
         verify(fxDealRepository, never()).save(any(FXDeal.class));
     }

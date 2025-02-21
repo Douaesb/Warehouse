@@ -4,12 +4,10 @@ import lombok.*;
 
 
 @Getter
-@Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FXDealResponseDTO {
-    private boolean success;
-    private String message;
-    private FXDealDTO fxDeal;
+public final class FXDealResponseDTO {
+    private final boolean success;
+    private final String message;
+    private final FXDealDTO fxDeal;
 }

@@ -116,7 +116,7 @@ docker-compose up --build -d
 
 ### **Manual JAR Execution**
 ```sh
-java -jar target/Warehouse-0.0.1-SNAPSHOT.jar
+java -jar target/warehouse-0.0.1-SNAPSHOT.jar
 ```
 
 ---
